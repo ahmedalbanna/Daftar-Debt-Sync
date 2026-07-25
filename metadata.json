@@ -1,0 +1,6 @@
+{
+  "name": "دفتر الديون - Daftar Debt Sync",
+  "description": "تطبيق إدارة الديون والزبائن محلياً مع المزامنة التلقائية عبر شبكة الـ Wi-Fi المحلية بين الهواتف بدون إنترنت",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
