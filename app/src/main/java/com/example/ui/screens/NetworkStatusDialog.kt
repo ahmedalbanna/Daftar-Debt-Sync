@@ -54,6 +54,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sync.PeerDevice
+import com.example.ui.util.CurrencyFormatter
 import kotlinx.coroutines.launch
 
 @Composable
@@ -105,7 +106,7 @@ fun NetworkStatusDialog(
                         ) {
                             Text("عنوان IP المحلي:", style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                text = "$localIp:8888",
+                                text = CurrencyFormatter.convertToArabicNumerals("$localIp:8888"),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -202,7 +203,7 @@ fun NetworkStatusDialog(
                                                 Column {
                                                     Text(peer.name, fontWeight = FontWeight.Bold)
                                                     Text(
-                                                        "${peer.ip}:${peer.port}",
+                                                        CurrencyFormatter.convertToArabicNumerals("${peer.ip}:${peer.port}"),
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.outline
                                                     )

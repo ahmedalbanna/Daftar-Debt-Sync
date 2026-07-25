@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -243,10 +244,18 @@ fun CustomerDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.ReceiptLong,
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.customer_empty_state_illustration_1785004511116),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier
+                                .fillMaxWidth(0.7f)
+                                .clip(RoundedCornerShape(16.dp))
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
@@ -283,7 +292,7 @@ fun PaddingStatementHeader(count: Int) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "كشف الحساب وتاريخ الحركات ($count)",
+            text = "كشف الحساب وتاريخ الحركات (${CurrencyFormatter.convertToArabicNumerals(count.toString())})",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )

@@ -43,9 +43,10 @@ fun AddCustomerDialog(
                         name = it
                         if (it.isNotBlank()) nameError = false
                     },
-                    label = { Text("اسم الزبون *") },
+                    label = { Text("اسم الزبون *", style = MaterialTheme.typography.bodyMedium) },
                     isError = nameError,
                     singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("customer_name_input")
@@ -64,9 +65,10 @@ fun AddCustomerDialog(
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("رقم الهاتف (اختياري)") },
+                    label = { Text("رقم الهاتف (اختياري)", style = MaterialTheme.typography.bodyMedium) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("customer_phone_input")
@@ -77,8 +79,9 @@ fun AddCustomerDialog(
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("ملاحظات / العنوان") },
+                    label = { Text("ملاحظات / العنوان", style = MaterialTheme.typography.bodyMedium) },
                     maxLines = 3,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("customer_notes_input")
@@ -97,12 +100,15 @@ fun AddCustomerDialog(
                 },
                 modifier = Modifier.testTag("save_customer_button")
             ) {
-                Text("حفظ الزبون")
+                Text("حفظ الزبون", style = MaterialTheme.typography.labelLarge)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("إلغاء")
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.testTag("cancel_customer_button")
+            ) {
+                Text("إلغاء", style = MaterialTheme.typography.labelLarge)
             }
         }
     )

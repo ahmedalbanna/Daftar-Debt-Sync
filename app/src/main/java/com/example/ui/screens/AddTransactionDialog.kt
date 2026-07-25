@@ -93,10 +93,11 @@ fun AddTransactionDialog(
                         amountText = it
                         if (it.isNotBlank() && it.toDoubleOrNull() != null) amountError = false
                     },
-                    label = { Text("المبلغ (د.ع) *") },
+                    label = { Text("المبلغ (د.ع) *", style = MaterialTheme.typography.bodyMedium) },
                     isError = amountError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("amount_input")
@@ -134,8 +135,9 @@ fun AddTransactionDialog(
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    label = { Text("ملاحظة / وصف البضاعة (اختياري)") },
+                    label = { Text("ملاحظة / وصف البضاعة (اختياري)", style = MaterialTheme.typography.bodyMedium) },
                     maxLines = 2,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("transaction_note_input")

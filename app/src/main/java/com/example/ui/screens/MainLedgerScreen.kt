@@ -92,7 +92,7 @@ fun MainLedgerScreen(
                             badge = {
                                 if (discoveredPeers.isNotEmpty()) {
                                     Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
-                                        Text("${discoveredPeers.size}")
+                                        Text(CurrencyFormatter.convertToArabicNumerals("${discoveredPeers.size}"))
                                     }
                                 }
                             }
