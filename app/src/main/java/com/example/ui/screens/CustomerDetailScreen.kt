@@ -56,10 +56,6 @@ import androidx.compose.ui.unit.dp
 import com.example.data.entity.TransactionEntity
 import com.example.data.entity.TransactionType
 import com.example.data.model.CustomerWithBalance
-import com.example.ui.theme.DebtRed
-import com.example.ui.theme.DebtRedBg
-import com.example.ui.theme.PaymentGreen
-import com.example.ui.theme.PaymentGreenBg
 import com.example.ui.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -174,8 +170,8 @@ fun CustomerDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Balance Card summary
-                    val balanceBg = if (balance > 0) DebtRedBg else PaymentGreenBg
-                    val balanceTextColor = if (balance > 0) DebtRed else PaymentGreen
+                    val balanceBg = if (balance > 0) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+                    val balanceTextColor = if (balance > 0) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -211,7 +207,7 @@ fun CustomerDetailScreen(
                     ) {
                         Button(
                             onClick = { onAddTransactionClick(TransactionType.DEBT) },
-                            colors = ButtonDefaults.buttonColors(containerColor = DebtRed),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("add_debt_button")
@@ -223,7 +219,7 @@ fun CustomerDetailScreen(
 
                         Button(
                             onClick = { onAddTransactionClick(TransactionType.PAYMENT) },
-                            colors = ButtonDefaults.buttonColors(containerColor = PaymentGreen),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("add_payment_button")
@@ -297,8 +293,9 @@ fun PaddingStatementHeader(count: Int) {
 @Composable
 fun TransactionRowItem(tx: TransactionEntity) {
     val isDebt = tx.type == TransactionType.DEBT
-    val itemBg = if (isDebt) DebtRedBg else PaymentGreenBg
-    val itemColor = if (isDebt) DebtRed else PaymentGreen
+    val itemBg = if (isDebt) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+    val itemColor = if (isDebt) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+    val onItemColor = if (isDebt) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
     val icon = if (isDebt) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
 
     Card(
@@ -325,7 +322,7 @@ fun TransactionRowItem(tx: TransactionEntity) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = itemColor,
+                        tint = onItemColor,
                         modifier = Modifier.size(22.dp)
                     )
                 }

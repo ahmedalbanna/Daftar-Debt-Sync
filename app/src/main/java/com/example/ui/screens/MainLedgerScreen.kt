@@ -52,10 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.data.model.CustomerWithBalance
 import com.example.sync.PeerDevice
-import com.example.ui.theme.DebtRed
-import com.example.ui.theme.DebtRedBg
-import com.example.ui.theme.PaymentGreen
-import com.example.ui.theme.PaymentGreenBg
 import com.example.ui.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +91,7 @@ fun MainLedgerScreen(
                         BadgedBox(
                             badge = {
                                 if (discoveredPeers.isNotEmpty()) {
-                                    Badge(containerColor = PaymentGreen) {
+                                    Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
                                         Text("${discoveredPeers.size}")
                                     }
                                 }
@@ -104,7 +100,7 @@ fun MainLedgerScreen(
                             Icon(
                                 imageVector = if (discoveredPeers.isNotEmpty()) Icons.Default.Wifi else Icons.Default.WifiOff,
                                 contentDescription = "حالة الشبكة",
-                                tint = if (discoveredPeers.isNotEmpty()) PaymentGreen else MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = if (discoveredPeers.isNotEmpty()) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -164,7 +160,7 @@ fun MainLedgerScreen(
                             text = CurrencyFormatter.formatAmount(totalShopDebt),
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = DebtRed
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
 
@@ -222,11 +218,26 @@ fun MainLedgerScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.daftar_hero_illustration_1785003608977),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .clip(RoundedCornerShape(16.dp))
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = if (searchQuery.isBlank()) "لا يوجد زبائن مسجلين حالياً" else "لم يتم العثور على نتائج للبحث",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.outline
                         )
+                        if (searchQuery.isBlank()) {
+                            Text(
+                                text = "اضغط على زر (+) لإضافة أول زبون",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
+                            )
+                        }
                     }
                 }
             } else {
@@ -261,8 +272,8 @@ fun CustomerListItem(
     val isDebt = balance > 0
     val isSettled = balance == 0.0
 
-    val badgeBg = if (isDebt) DebtRedBg else if (isSettled) MaterialTheme.colorScheme.surfaceVariant else PaymentGreenBg
-    val badgeTextColor = if (isDebt) DebtRed else if (isSettled) MaterialTheme.colorScheme.outline else PaymentGreen
+    val badgeBg = if (isDebt) MaterialTheme.colorScheme.errorContainer else if (isSettled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.tertiaryContainer
+    val badgeTextColor = if (isDebt) MaterialTheme.colorScheme.onErrorContainer else if (isSettled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onTertiaryContainer
 
     Card(
         modifier = Modifier

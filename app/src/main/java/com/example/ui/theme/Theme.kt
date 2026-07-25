@@ -15,22 +15,34 @@ private val DarkColorScheme =
   darkColorScheme(
     primary = TealDarkPrimary,
     secondary = EmeraldSecondary,
+    tertiary = PaymentGreen,
+    error = DebtRed,
     background = BackgroundDark,
     surface = SurfaceDarkCard,
     onBackground = Color.White,
-    onSurface = Color.White
+    onSurface = Color.White,
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    tertiaryContainer = Color(0xFF00513B),
+    onTertiaryContainer = Color(0xFFD1FAE5)
   )
 
 private val LightColorScheme =
   lightColorScheme(
     primary = TealPrimary,
     secondary = EmeraldSecondary,
+    tertiary = PaymentGreen,
+    error = DebtRed,
     background = BackgroundLight,
     surface = SurfaceCard,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onBackground = TextDark,
-    onSurface = TextDark
+    onSurface = TextDark,
+    errorContainer = DebtRedContainer,
+    onErrorContainer = OnDebtRedContainer,
+    tertiaryContainer = PaymentGreenContainer,
+    onTertiaryContainer = OnPaymentGreenContainer
   )
 
 @Composable

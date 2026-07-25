@@ -54,7 +54,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sync.PeerDevice
-import com.example.ui.theme.PaymentGreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -197,7 +196,7 @@ fun NetworkStatusDialog(
                                                     modifier = Modifier
                                                         .size(10.dp)
                                                         .clip(CircleShape)
-                                                        .background(PaymentGreen)
+                                                        .background(MaterialTheme.colorScheme.tertiary)
                                                 )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Column {
@@ -212,7 +211,7 @@ fun NetworkStatusDialog(
                                             Text(
                                                 "متصل محلياً",
                                                 style = MaterialTheme.typography.labelSmall,
-                                                color = PaymentGreen
+                                                color = MaterialTheme.colorScheme.tertiary
                                             )
                                         }
                                     }
@@ -229,7 +228,7 @@ fun NetworkStatusDialog(
                                     style = MaterialTheme.typography.bodySmall,
                                     modifier = Modifier.padding(vertical = 2.dp)
                                 )
-                                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                             }
                         }
                     }

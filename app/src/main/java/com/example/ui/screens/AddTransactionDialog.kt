@@ -31,8 +31,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.data.entity.TransactionType
-import com.example.ui.theme.DebtRed
-import com.example.ui.theme.PaymentGreen
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -65,8 +63,8 @@ fun AddTransactionDialog(
                         onClick = { selectedType = TransactionType.DEBT },
                         shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                         colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = DebtRed.copy(alpha = 0.15f),
-                            activeContentColor = DebtRed
+                            activeContainerColor = MaterialTheme.colorScheme.errorContainer,
+                            activeContentColor = MaterialTheme.colorScheme.error
                         ),
                         modifier = Modifier.testTag("type_debt_button")
                     ) {
@@ -78,8 +76,8 @@ fun AddTransactionDialog(
                         onClick = { selectedType = TransactionType.PAYMENT },
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                         colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = PaymentGreen.copy(alpha = 0.15f),
-                            activeContentColor = PaymentGreen
+                            activeContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            activeContentColor = MaterialTheme.colorScheme.tertiary
                         ),
                         modifier = Modifier.testTag("type_payment_button")
                     ) {
@@ -145,7 +143,7 @@ fun AddTransactionDialog(
             }
         },
         confirmButton = {
-            val buttonColor = if (selectedType == TransactionType.DEBT) DebtRed else PaymentGreen
+            val buttonColor = if (selectedType == TransactionType.DEBT) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
             Button(
                 onClick = {
                     val amount = amountText.toDoubleOrNull()
