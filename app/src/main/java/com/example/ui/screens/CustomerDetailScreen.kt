@@ -117,8 +117,7 @@ fun CustomerDetailScreen(
                         Column {
                             Text(
                                 text = customer.name,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                             )
                             if (customer.phone.isNotBlank()) {
                                 Row(
@@ -192,8 +191,7 @@ fun CustomerDetailScreen(
                             )
                             Text(
                                 text = CurrencyFormatter.formatAmount(kotlin.math.abs(balance)),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                                 color = balanceTextColor
                             )
                         }
@@ -208,26 +206,32 @@ fun CustomerDetailScreen(
                     ) {
                         Button(
                             onClick = { onAddTransactionClick(TransactionType.DEBT) },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("add_debt_button")
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("+ دين جديد")
+                            Text("+ دين جديد", style = MaterialTheme.typography.labelLarge)
                         }
 
                         Button(
                             onClick = { onAddTransactionClick(TransactionType.PAYMENT) },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiary,
+                                contentColor = MaterialTheme.colorScheme.onTertiary
+                            ),
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("add_payment_button")
                         ) {
                             Icon(Icons.Default.Payments, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("تسديد مبلغ")
+                            Text("تسديد مبلغ", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
@@ -293,8 +297,7 @@ fun PaddingStatementHeader(count: Int) {
     ) {
         Text(
             text = "كشف الحساب وتاريخ الحركات (${CurrencyFormatter.convertToArabicNumerals(count.toString())})",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
         )
     }
 }
@@ -341,8 +344,7 @@ fun TransactionRowItem(tx: TransactionEntity) {
                 Column {
                     Text(
                         text = if (isDebt) "تسجيل دين" else "دفعة تسديد",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
                     if (tx.note.isNotBlank()) {
                         Text(
@@ -369,8 +371,7 @@ fun TransactionRowItem(tx: TransactionEntity) {
 
             Text(
                 text = (if (isDebt) "+ " else "- ") + CurrencyFormatter.formatAmount(tx.amount),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = itemColor
             )
         }

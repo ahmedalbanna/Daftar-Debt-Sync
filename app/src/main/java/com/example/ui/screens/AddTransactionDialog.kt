@@ -146,6 +146,7 @@ fun AddTransactionDialog(
         },
         confirmButton = {
             val buttonColor = if (selectedType == TransactionType.DEBT) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+            val onButtonColor = if (selectedType == TransactionType.DEBT) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onTertiary
             Button(
                 onClick = {
                     val amount = amountText.toDoubleOrNull()
@@ -156,10 +157,16 @@ fun AddTransactionDialog(
                         onDismiss()
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    contentColor = onButtonColor
+                ),
                 modifier = Modifier.testTag("save_transaction_button")
             ) {
-                Text(if (selectedType == TransactionType.DEBT) "حفظ الدين" else "حفظ التسديد")
+                Text(
+                    text = if (selectedType == TransactionType.DEBT) "حفظ الدين" else "حفظ التسديد",
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         },
         dismissButton = {

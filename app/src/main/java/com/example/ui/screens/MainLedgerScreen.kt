@@ -73,13 +73,12 @@ fun MainLedgerScreen(
                     Column {
                         Text(
                             text = "دفتر الديون المحلي",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
                             text = "مزامنة تلقائية بدون إنترنت (Wi-Fi)",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
                     }
                 },
@@ -115,7 +114,7 @@ fun MainLedgerScreen(
             FloatingActionButton(
                 onClick = onAddCustomerClick,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.testTag("add_customer_fab")
             ) {
                 Row(
@@ -124,7 +123,10 @@ fun MainLedgerScreen(
                 ) {
                     Icon(Icons.Default.PersonAdd, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("زبون جديد", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "زبون جديد",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
         }
@@ -158,8 +160,7 @@ fun MainLedgerScreen(
                         )
                         Text(
                             text = CurrencyFormatter.formatAmount(totalShopDebt),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -173,9 +174,8 @@ fun MainLedgerScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "${customers.size}",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
+                                text = CurrencyFormatter.convertToArabicNumerals("${customers.size}"),
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
@@ -316,8 +316,7 @@ fun CustomerListItem(
                 Column {
                     Text(
                         text = customer.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -361,8 +360,7 @@ fun CustomerListItem(
                     )
                     Text(
                         text = CurrencyFormatter.formatAmount(kotlin.math.abs(balance)),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = badgeTextColor
                     )
                 }

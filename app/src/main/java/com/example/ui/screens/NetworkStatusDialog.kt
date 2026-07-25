@@ -107,8 +107,7 @@ fun NetworkStatusDialog(
                             Text("عنوان IP المحلي:", style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 text = CurrencyFormatter.convertToArabicNumerals("$localIp:8888"),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -201,7 +200,7 @@ fun NetworkStatusDialog(
                                                 )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Column {
-                                                    Text(peer.name, fontWeight = FontWeight.Bold)
+                                                    Text(peer.name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
                                                     Text(
                                                         CurrencyFormatter.convertToArabicNumerals("${peer.ip}:${peer.port}"),
                                                         style = MaterialTheme.typography.bodySmall,
@@ -288,7 +287,7 @@ fun NetworkStatusDialog(
                 if (isSyncing) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
