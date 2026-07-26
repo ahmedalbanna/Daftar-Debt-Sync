@@ -81,8 +81,8 @@ fun DaftarApp(viewModel: LedgerViewModel) {
     if (showAddCustomerDialog) {
         AddCustomerDialog(
             onDismiss = { showAddCustomerDialog = false },
-            onConfirm = { name, phone, notes ->
-                viewModel.addCustomer(name, phone, notes)
+            onConfirm = { name, phone, notes, openingBalance ->
+                viewModel.addCustomer(name, phone, notes, openingBalance)
             }
         )
     }

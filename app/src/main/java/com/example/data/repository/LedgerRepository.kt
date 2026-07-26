@@ -55,12 +55,13 @@ class LedgerRepository(
         return customerDao.getCustomerById(customerId)
     }
 
-    suspend fun addCustomer(name: String, phone: String, notes: String): CustomerEntity {
+    suspend fun addCustomer(name: String, phone: String, notes: String, openingBalance: Double = 0.0): CustomerEntity {
         val newCustomer = CustomerEntity(
             id = UUID.randomUUID().toString(),
             name = name.trim(),
             phone = phone.trim(),
             notes = notes.trim(),
+            openingBalance = openingBalance,
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
@@ -129,9 +130,9 @@ class LedgerRepository(
         val existing = customerDao.getAllCustomersDirect()
         if (existing.isNotEmpty()) return
 
-        val c1 = CustomerEntity(id = "c1", name = "أحمد المحمود", phone = "07701234567", notes = "زبون دائم - المحل الرئيسي")
+        val c1 = CustomerEntity(id = "c1", name = "أحمد المحمود", phone = "07701234567", notes = "زبون دائم - المحل الرئيسي", openingBalance = 10000.0)
         val c2 = CustomerEntity(id = "c2", name = "أبو فهد العراقي", phone = "07809876543", notes = "تسديد أسبوعي")
-        val c3 = CustomerEntity(id = "c3", name = "محل الأمل للتجهيزات", phone = "07505554433", notes = "جملة وسوبرماركت")
+        val c3 = CustomerEntity(id = "c3", name = "محل الأمل للتجهيزات", phone = "07505554433", notes = "جملة وسوبرماركت", openingBalance = -5000.0)
 
         customerDao.insertCustomers(listOf(c1, c2, c3))
 

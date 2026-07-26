@@ -25,11 +25,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AddCustomerDialog(
     onDismiss: () -> Unit,
-    onConfirm: (name: String, phone: String, notes: String) -> Unit
+    onConfirm: (name: String, phone: String, notes: String, openingBalance: Double) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    var openingBalance by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -77,6 +78,21 @@ fun AddCustomerDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
+                    value = openingBalance,
+                    onValueChange = { openingBalance = it },
+                    label = { Text("الرصيد الافتتاحي (دين عليه + / له -)", style = MaterialTheme.typography.bodyMedium) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    placeholder = { Text("0") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("customer_opening_balance_input")
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("ملاحظات / العنوان", style = MaterialTheme.typography.bodyMedium) },
@@ -94,7 +110,7 @@ fun AddCustomerDialog(
                     if (name.isBlank()) {
                         nameError = true
                     } else {
-                        onConfirm(name, phone, notes)
+                        onConfirm(name, phone, notes, openingBalance.toDoubleOrNull() ?: 0.0)
                         onDismiss()
                     }
                 },

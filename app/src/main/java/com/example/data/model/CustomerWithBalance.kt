@@ -11,5 +11,5 @@ data class CustomerWithBalance(
 ) {
     // Net balance: positive means customer owes money to shop (دين علي الزبون)
     // negative means credit/prepaid by customer
-    val netBalance: Double get() = totalDebt - totalPayment
+    val netBalance: Double get() = customer.openingBalance + totalDebt - totalPayment
 }

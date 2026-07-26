@@ -14,6 +14,7 @@ object SyncJsonAdapter {
             put("name", customer.name)
             put("phone", customer.phone)
             put("notes", customer.notes)
+            put("openingBalance", customer.openingBalance)
             put("createdAt", customer.createdAt)
             put("updatedAt", customer.updatedAt)
         }
@@ -25,6 +26,7 @@ object SyncJsonAdapter {
             name = json.getString("name"),
             phone = json.optString("phone", ""),
             notes = json.optString("notes", ""),
+            openingBalance = json.optDouble("openingBalance", 0.0),
             createdAt = json.optLong("createdAt", System.currentTimeMillis()),
             updatedAt = json.optLong("updatedAt", System.currentTimeMillis())
         )

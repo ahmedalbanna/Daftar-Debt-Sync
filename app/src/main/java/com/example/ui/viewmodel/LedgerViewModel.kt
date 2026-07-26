@@ -124,9 +124,9 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         _selectedCustomerId.value = customerId
     }
 
-    fun addCustomer(name: String, phone: String, notes: String) {
+    fun addCustomer(name: String, phone: String, notes: String, openingBalance: Double = 0.0) {
         viewModelScope.launch {
-            val customer = repository.addCustomer(name, phone, notes)
+            val customer = repository.addCustomer(name, phone, notes, openingBalance)
             selectCustomer(customer.id)
         }
     }

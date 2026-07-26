@@ -276,12 +276,78 @@ fun CustomerDetailScreen(
                         .fillMaxSize()
                         .padding(horizontal = 16.dp)
                 ) {
+                    if (customer.openingBalance != 0.0) {
+                        item {
+                            OpeningBalanceRowItem(customer.openingBalance, customer.createdAt)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
                     items(transactions) { tx ->
                         TransactionRowItem(tx)
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun OpeningBalanceRowItem(amount: Double, timestamp: Long) {
+    val isDebt = amount > 0
+    val itemBg = if (isDebt) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+    val itemColor = if (isDebt) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+    val onItemColor = if (isDebt) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(itemBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ReceiptLong,
+                        contentDescription = null,
+                        tint = onItemColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = "الرصيد الافتتاحي",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        text = CurrencyFormatter.formatDate(timestamp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+
+            Text(
+                text = (if (isDebt) "+ " else "") + CurrencyFormatter.formatAmount(amount),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = itemColor
+            )
         }
     }
 }
