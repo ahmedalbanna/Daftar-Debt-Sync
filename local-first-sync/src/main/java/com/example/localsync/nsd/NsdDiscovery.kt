@@ -1,24 +1,30 @@
-package com.example.sync
+package com.example.localsync.nsd
 
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.util.Log
+import com.example.localsync.model.PeerDevice
+import com.example.localsync.model.PeerStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.net.InetAddress
 
-class NsdSyncManager(
+/**
+ * Discovers and registers P2P sync services over the local network using NSD.
+ * Configurable service type allows different apps to use distinct discovery namespaces.
+ */
+class NsdDiscovery(
     private val context: Context,
     private val deviceId: String,
     private val deviceName: String,
-    private val serverPort: Int
+    private val port: Int,
+    private val serviceType: String = "_p2p-sync._tcp."
 ) {
-    private val TAG = "NsdSyncManager"
-    private val SERVICE_TYPE = "_daftarsync._tcp."
+    private val TAG = "NsdDiscovery"
 
     private val nsdManager: NsdManager? =
         context.getSystemService(Context.NSD_SERVICE) as? NsdManager
@@ -31,9 +37,9 @@ class NsdSyncManager(
     private var registrationListener: NsdManager.RegistrationListener? = null
     private var discoveryListener: NsdManager.DiscoveryListener? = null
 
-    private val serviceName = "Daftar_${deviceName.replace(" ", "_")}_${deviceId.take(4)}"
+    private val serviceName = "Sync_${deviceName.replace(" ", "_")}_${deviceId.take(4)}"
 
-    fun startDiscoveryAndRegistration() {
+    fun start() {
         acquireMulticastLock()
         registerService()
         discoverServices()
@@ -43,7 +49,7 @@ class NsdSyncManager(
         try {
             val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
             if (wifi != null) {
-                multicastLock = wifi.createMulticastLock("DaftarMulticastLock").apply {
+                multicastLock = wifi.createMulticastLock("LocalSyncMulticastLock").apply {
                     setReferenceCounted(true)
                     acquire()
                 }
@@ -57,9 +63,9 @@ class NsdSyncManager(
         if (nsdManager == null) return
 
         val serviceInfo = NsdServiceInfo().apply {
-            serviceName = this@NsdSyncManager.serviceName
-            serviceType = SERVICE_TYPE
-            port = serverPort
+            serviceName = this@NsdDiscovery.serviceName
+            serviceType = this@NsdDiscovery.serviceType
+            port = this@NsdDiscovery.port
         }
 
         registrationListener = object : NsdManager.RegistrationListener {
@@ -97,7 +103,9 @@ class NsdSyncManager(
 
             override fun onServiceFound(service: NsdServiceInfo) {
                 Log.d(TAG, "Service found: ${service.serviceName}")
-                if (service.serviceType.contains("_daftarsync") && service.serviceName != serviceName) {
+                if (service.serviceType.contains(serviceType.split(".").first()) &&
+                    service.serviceName != serviceName
+                ) {
                     try {
                         nsdManager.resolveService(service, object : NsdManager.ResolveListener {
                             override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
@@ -152,7 +160,7 @@ class NsdSyncManager(
         }
 
         try {
-            nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+            nsdManager.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
         } catch (e: Exception) {
             Log.e(TAG, "Error starting NSD discovery", e)
         }

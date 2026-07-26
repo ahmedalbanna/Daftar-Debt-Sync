@@ -1,4 +1,4 @@
-package com.example.sync
+package com.example.localsync.model
 
 data class PeerDevice(
     val id: String,

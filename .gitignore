@@ -16,3 +16,6 @@
 local.properties
 .env
 debug.keystore
+
+# Module-level build directories (covers :app, :local-first-sync, etc.)
+build/

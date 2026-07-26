@@ -51,7 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.data.model.CustomerWithBalance
-import com.example.sync.PeerDevice
+import com.example.localsync.model.PeerDevice
 import com.example.ui.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)

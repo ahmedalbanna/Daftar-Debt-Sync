@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "DaftarDebtSync"
 
 include(":app")
+include(":local-first-sync")

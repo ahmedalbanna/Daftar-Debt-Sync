@@ -9,9 +9,10 @@ import com.example.data.entity.TransactionEntity
 import com.example.data.entity.TransactionType
 import com.example.data.model.CustomerWithBalance
 import com.example.data.repository.LedgerRepository
-import com.example.sync.PeerDevice
-import com.example.sync.SyncJsonAdapter
+import com.example.localsync.model.PeerDevice
+import com.example.sync.CustomerSerializer
 import com.example.sync.SyncOrchestrator
+import com.example.sync.TransactionSerializer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,7 @@ import java.util.UUID
 class LedgerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getInstance(application)
-    
+
     // Unique device ID per installation
     val deviceId: String = getOrCreateDeviceId()
 
@@ -40,6 +41,9 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         repository = repository,
         scope = viewModelScope
     )
+
+    private val customerSerializer = CustomerSerializer()
+    private val transactionSerializer = TransactionSerializer()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -153,8 +157,8 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
             put("app", "DaftarDebtSync")
             put("version", 1)
             put("exportedAt", System.currentTimeMillis())
-            put("customers", SyncJsonAdapter.customersToJsonArray(customers))
-            put("transactions", SyncJsonAdapter.transactionsToJsonArray(transactions))
+            put("customers", customerSerializer.toJsonArray(customers))
+            put("transactions", transactionSerializer.toJsonArray(transactions))
         }
 
         return json.toString(2)
@@ -166,8 +170,8 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
             val custArray = json.optJSONArray("customers")
             val txArray = json.optJSONArray("transactions")
 
-            val customers = if (custArray != null) SyncJsonAdapter.jsonArrayToCustomers(custArray) else emptyList()
-            val transactions = if (txArray != null) SyncJsonAdapter.jsonArrayToTransactions(txArray) else emptyList()
+            val customers = if (custArray != null) customerSerializer.fromJsonArray(custArray) else emptyList()
+            val transactions = if (txArray != null) transactionSerializer.fromJsonArray(txArray) else emptyList()
 
             repository.importSyncData(customers, transactions)
             true

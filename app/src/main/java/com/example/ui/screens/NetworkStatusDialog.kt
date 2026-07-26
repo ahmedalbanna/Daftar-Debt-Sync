@@ -53,7 +53,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.sync.PeerDevice
+import com.example.localsync.model.PeerDevice
 import com.example.ui.util.CurrencyFormatter
 import kotlinx.coroutines.launch
 

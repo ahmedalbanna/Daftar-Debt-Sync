@@ -2,6 +2,7 @@ package com.example.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.localsync.SyncableEvent
 import java.util.UUID
 
 enum class TransactionType {
@@ -12,12 +13,13 @@ enum class TransactionType {
 @Entity(tableName = "transactions")
 data class TransactionEntity(
     @PrimaryKey
-    val id: String = UUID.randomUUID().toString(),
+    override val id: String = UUID.randomUUID().toString(),
     val customerId: String,
     val type: TransactionType,
     val amount: Double,
     val note: String = "",
-    val timestamp: Long = System.currentTimeMillis(),
-    val deviceId: String,
-    val isSynced: Boolean = false
-)
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val deviceId: String,
+    val isSynced: Boolean = false,
+    override val entityType: String = "TRANSACTION"
+) : SyncableEvent
