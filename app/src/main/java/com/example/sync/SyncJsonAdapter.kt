@@ -84,4 +84,19 @@ object SyncJsonAdapter {
         }
         return list
     }
+
+    fun backupDatabaseToJson(customers: List<CustomerEntity>, transactions: List<TransactionEntity>): String {
+        return JSONObject().apply {
+            put("customers", customersToJsonArray(customers))
+            put("transactions", transactionsToJsonArray(transactions))
+            put("backupDate", System.currentTimeMillis())
+        }.toString(2)
+    }
+
+    fun restoreDatabaseFromJson(jsonString: String): Pair<List<CustomerEntity>, List<TransactionEntity>> {
+        val json = JSONObject(jsonString)
+        val customers = jsonArrayToCustomers(json.getJSONArray("customers"))
+        val transactions = jsonArrayToTransactions(json.getJSONArray("transactions"))
+        return Pair(customers, transactions)
+    }
 }

@@ -1,6 +1,9 @@
 package com.example.ui.screens
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,7 +34,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -46,16 +48,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sync.PeerDevice
 import com.example.ui.util.CurrencyFormatter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 
 @Composable
 fun NetworkStatusDialog(
@@ -72,10 +76,57 @@ fun NetworkStatusDialog(
     var selectedTab by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
 
-    var importJsonText by remember { mutableStateOf("") }
-    var showImportDialog by remember { mutableStateOf(false) }
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val json = onExportBackup()
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                            OutputStreamWriter(outputStream).use { writer ->
+                                writer.write(json)
+                            }
+                        }
+                    }
+                    Toast.makeText(context, "تم حفظ النسخة الاحتياطية بنجاح!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "فشل حفظ الملف: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val json = withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(it)?.use { inputStream ->
+                            BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                                reader.readText()
+                            }
+                        }
+                    } ?: ""
+                    
+                    if (json.isNotBlank()) {
+                        val success = onImportBackup(json)
+                        if (success) {
+                            Toast.makeText(context, "تم استيراد ودمج البيانات بنجاح!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "خطأ في تنسيق بيانات الملف", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "فشل قراءة الملف: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -242,36 +293,31 @@ fun NetworkStatusDialog(
                         ) {
                             OutlinedButton(
                                 onClick = {
-                                    scope.launch {
-                                        val backup = onExportBackup()
-                                        clipboardManager.setText(AnnotatedString(backup))
-                                        Toast.makeText(
-                                            context,
-                                            "تم نسخ النسخة الاحتياطية للحافظة بنجاح!",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
+                                    val timestamp = System.currentTimeMillis()
+                                    exportLauncher.launch("Daftar_Backup_$timestamp.json")
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .testTag("export_backup_button")
                             ) {
-                                Icon(Icons.Default.Share, contentDescription = null)
+                                Icon(Icons.Default.Download, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("تصدير نسخة احتياطية (نسخ للذاكرة)")
+                                Text("تصدير نسخة احتياطية لملف")
                             }
 
                             Spacer(modifier = Modifier.height(8.dp))
 
                             OutlinedButton(
-                                onClick = { showImportDialog = true },
+                                onClick = {
+                                    importLauncher.launch(arrayOf("application/json"))
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .testTag("import_backup_button")
                             ) {
-                                Icon(Icons.Default.Download, contentDescription = null)
+                                Icon(Icons.Default.Upload, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("استرجاع/دمج نسخة احتياطية")
+                                Text("استيراد نسخة احتياطية من ملف")
                             }
                         }
                     }
@@ -305,59 +351,4 @@ fun NetworkStatusDialog(
             }
         }
     )
-
-    if (showImportDialog) {
-        AlertDialog(
-            onDismissRequest = { showImportDialog = false },
-            title = { Text("استرجاع أو دمج بيانات") },
-            text = {
-                Column {
-                    Text(
-                        "الصق نص النسخة الاحتياطية (JSON) أدناه لدمج البيانات بدون تكرار:",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = importJsonText,
-                        onValueChange = { importJsonText = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(140.dp)
-                            .testTag("import_json_input"),
-                        placeholder = { Text("الصق هنا...") }
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            val success = onImportBackup(importJsonText)
-                            if (success) {
-                                Toast.makeText(
-                                    context,
-                                    "تم استرجاع ودمج البيانات بنجاح!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                showImportDialog = false
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "خطأ في تنسيق بيانات النسخة الاحتياطية",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
-                ) {
-                    Text("دمج البيانات")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showImportDialog = false }) {
-                    Text("إلغاء")
-                }
-            }
-        )
-    }
 }

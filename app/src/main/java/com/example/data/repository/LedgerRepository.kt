@@ -6,6 +6,7 @@ import com.example.data.entity.CustomerEntity
 import com.example.data.entity.TransactionEntity
 import com.example.data.entity.TransactionType
 import com.example.data.model.CustomerWithBalance
+import com.example.sync.SyncJsonAdapter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.util.UUID
@@ -152,5 +153,16 @@ class LedgerRepository(
         )
 
         transactionDao.insertTransactions(txs)
+    }
+
+    suspend fun exportDatabaseToJson(): String {
+        val customers = customerDao.getAllCustomersDirect()
+        val transactions = transactionDao.getAllTransactionsDirect()
+        return SyncJsonAdapter.backupDatabaseToJson(customers, transactions)
+    }
+
+    suspend fun importDatabaseFromJson(jsonString: String) {
+        val (customers, transactions) = SyncJsonAdapter.restoreDatabaseFromJson(jsonString)
+        importSyncData(customers, transactions)
     }
 }

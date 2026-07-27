@@ -146,30 +146,12 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     suspend fun exportBackupJson(): String {
-        val customers = repository.getAllCustomersDirect()
-        val transactions = repository.getAllTransactionsDirect()
-
-        val json = JSONObject().apply {
-            put("app", "DaftarDebtSync")
-            put("version", 1)
-            put("exportedAt", System.currentTimeMillis())
-            put("customers", SyncJsonAdapter.customersToJsonArray(customers))
-            put("transactions", SyncJsonAdapter.transactionsToJsonArray(transactions))
-        }
-
-        return json.toString(2)
+        return repository.exportDatabaseToJson()
     }
 
     suspend fun importBackupJson(jsonString: String): Boolean {
         return try {
-            val json = JSONObject(jsonString)
-            val custArray = json.optJSONArray("customers")
-            val txArray = json.optJSONArray("transactions")
-
-            val customers = if (custArray != null) SyncJsonAdapter.jsonArrayToCustomers(custArray) else emptyList()
-            val transactions = if (txArray != null) SyncJsonAdapter.jsonArrayToTransactions(txArray) else emptyList()
-
-            repository.importSyncData(customers, transactions)
+            repository.importDatabaseFromJson(jsonString)
             true
         } catch (e: Exception) {
             false
