@@ -51,6 +51,7 @@ fun DaftarApp(viewModel: LedgerViewModel) {
     var showAddCustomerDialog by remember { mutableStateOf(false) }
     var showAddTransactionDialog by remember { mutableStateOf(false) }
     var transactionTypeToAdd by remember { mutableStateOf(TransactionType.DEBT) }
+    var transactionToEdit by remember { mutableStateOf<com.example.data.entity.TransactionEntity?>(null) }
     var showNetworkStatusDialog by remember { mutableStateOf(false) }
 
     val currentCustomer = selectedCustomerDetail
@@ -62,6 +63,12 @@ fun DaftarApp(viewModel: LedgerViewModel) {
             onBackClick = { viewModel.selectCustomer(null) },
             onAddTransactionClick = { type ->
                 transactionTypeToAdd = type
+                transactionToEdit = null
+                showAddTransactionDialog = true
+            },
+            onEditTransactionClick = { tx ->
+                transactionToEdit = tx
+                transactionTypeToAdd = tx.type
                 showAddTransactionDialog = true
             }
         )
@@ -91,9 +98,21 @@ fun DaftarApp(viewModel: LedgerViewModel) {
         AddTransactionDialog(
             customerName = currentCustomer.customer.name,
             initialType = transactionTypeToAdd,
-            onDismiss = { showAddTransactionDialog = false },
+            initialAmount = transactionToEdit?.amount?.let { if (it % 1.0 == 0.0) it.toLong().toString() else it.toString() } ?: "",
+            initialNote = transactionToEdit?.note ?: "",
+            title = if (transactionToEdit != null) "تعديل الحركة المالية" else null,
+            onDismiss = { 
+                showAddTransactionDialog = false
+                transactionToEdit = null
+            },
             onConfirm = { type, amount, note ->
-                viewModel.addTransaction(currentCustomer.customer.id, type, amount, note)
+                val toEdit = transactionToEdit
+                if (toEdit != null) {
+                    viewModel.updateTransaction(toEdit, amount, note)
+                } else {
+                    viewModel.addTransaction(currentCustomer.customer.id, type, amount, note)
+                }
+                transactionToEdit = null
             }
         )
     }

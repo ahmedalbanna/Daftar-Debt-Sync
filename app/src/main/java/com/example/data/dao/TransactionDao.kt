@@ -18,11 +18,11 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE isSynced = 0")
     suspend fun getUnsyncedTransactions(): List<TransactionEntity>
 
-    // Append-only Event Sourcing: Ignore duplicate transaction IDs
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    // Support updates and merging: Replace existing transactions with same ID
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: TransactionEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransactions(transactions: List<TransactionEntity>): List<Long>
 
     @Query("UPDATE transactions SET isSynced = 1 WHERE id IN (:ids)")

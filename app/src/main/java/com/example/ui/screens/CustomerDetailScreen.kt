@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.ReceiptLong
@@ -65,7 +66,8 @@ fun CustomerDetailScreen(
     customerWithBalance: CustomerWithBalance,
     transactions: List<TransactionEntity>,
     onBackClick: () -> Unit,
-    onAddTransactionClick: (TransactionType) -> Unit
+    onAddTransactionClick: (TransactionType) -> Unit,
+    onEditTransactionClick: (TransactionEntity) -> Unit
 ) {
     val context = LocalContext.current
     val customer = customerWithBalance.customer
@@ -283,7 +285,7 @@ fun CustomerDetailScreen(
                         }
                     }
                     items(transactions) { tx ->
-                        TransactionRowItem(tx)
+                        TransactionRowItem(tx, onEditClick = { onEditTransactionClick(tx) })
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -369,7 +371,7 @@ fun PaddingStatementHeader(count: Int) {
 }
 
 @Composable
-fun TransactionRowItem(tx: TransactionEntity) {
+fun TransactionRowItem(tx: TransactionEntity, onEditClick: () -> Unit) {
     val isDebt = tx.type == TransactionType.DEBT
     val itemBg = if (isDebt) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
     val itemColor = if (isDebt) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
@@ -389,7 +391,7 @@ fun TransactionRowItem(tx: TransactionEntity) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -435,11 +437,24 @@ fun TransactionRowItem(tx: TransactionEntity) {
                 }
             }
 
-            Text(
-                text = (if (isDebt) "+ " else "- ") + CurrencyFormatter.formatAmount(tx.amount),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = itemColor
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = (if (isDebt) "+ " else "- ") + CurrencyFormatter.formatAmount(tx.amount),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = itemColor
+                )
+                IconButton(
+                    onClick = onEditClick,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "تعديل",
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
     }
 }

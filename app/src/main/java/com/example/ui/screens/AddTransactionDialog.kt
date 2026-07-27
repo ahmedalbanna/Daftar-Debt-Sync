@@ -37,12 +37,15 @@ import com.example.data.entity.TransactionType
 fun AddTransactionDialog(
     customerName: String,
     initialType: TransactionType = TransactionType.DEBT,
+    initialAmount: String = "",
+    initialNote: String = "",
+    title: String? = null,
     onDismiss: () -> Unit,
     onConfirm: (type: TransactionType, amount: Double, note: String) -> Unit
 ) {
     var selectedType by remember { mutableStateOf(initialType) }
-    var amountText by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
+    var amountText by remember { mutableStateOf(initialAmount) }
+    var note by remember { mutableStateOf(initialNote) }
     var amountError by remember { mutableStateOf(false) }
 
     val presetAmounts = listOf("5000", "10000", "25000", "50000", "100000")
@@ -51,7 +54,7 @@ fun AddTransactionDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                if (selectedType == TransactionType.DEBT) "تسجيل دين جديد ($customerName)" else "تسجيل دفعة تسديد ($customerName)",
+                title ?: if (selectedType == TransactionType.DEBT) "تسجيل دين جديد ($customerName)" else "تسجيل دفعة تسديد ($customerName)",
                 style = MaterialTheme.typography.titleLarge
             )
         },

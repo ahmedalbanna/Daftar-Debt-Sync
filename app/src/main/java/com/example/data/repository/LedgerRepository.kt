@@ -97,6 +97,27 @@ class LedgerRepository(
         return transaction
     }
 
+    suspend fun updateTransaction(
+        transaction: TransactionEntity,
+        newAmount: Double,
+        newNote: String
+    ): TransactionEntity {
+        val updatedTransaction = transaction.copy(
+            amount = newAmount,
+            note = newNote.trim(),
+            isSynced = false
+        )
+        transactionDao.insertTransaction(updatedTransaction)
+        
+        // Touch customer updatedAt
+        val customer = customerDao.getCustomerByIdDirect(transaction.customerId)
+        if (customer != null) {
+            customerDao.updateCustomer(customer.copy(updatedAt = System.currentTimeMillis()))
+        }
+        
+        return updatedTransaction
+    }
+
     suspend fun getUnsyncedTransactions(): List<TransactionEntity> {
         return transactionDao.getUnsyncedTransactions()
     }

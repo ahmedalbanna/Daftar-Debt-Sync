@@ -141,6 +141,17 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun updateTransaction(transaction: TransactionEntity, newAmount: Double, newNote: String) {
+        viewModelScope.launch {
+            val updatedTx = repository.updateTransaction(transaction, newAmount, newNote)
+            val cust = db.customerDao().getCustomerByIdDirect(transaction.customerId)
+            if (cust != null) {
+                // We use the same push method as it handles existing IDs by replacing
+                syncOrchestrator.pushNewTransactionToAllPeers(cust, updatedTx)
+            }
+        }
+    }
+
     fun triggerManualSync() {
         syncOrchestrator.triggerSyncWithAllPeers()
     }
