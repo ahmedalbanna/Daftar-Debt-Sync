@@ -1,14 +1,28 @@
 package com.example.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,27 +31,108 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 
 @Composable
 fun AddCustomerDialog(
     onDismiss: () -> Unit,
     onConfirm: (name: String, phone: String, notes: String, openingBalance: Double) -> Unit
 ) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var openingBalance by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf(false) }
 
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickContact()
+    ) { uri ->
+        uri?.let { contactUri ->
+            val contentResolver = context.contentResolver
+            
+            // Query for Display Name
+            contentResolver.query(contactUri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                    if (nameIndex >= 0) {
+                        name = cursor.getString(nameIndex)
+                        nameError = false
+                    }
+                    
+                    val hasPhoneIndex = cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                    val idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                    
+                    if (hasPhoneIndex >= 0 && idIndex >= 0 && cursor.getInt(hasPhoneIndex) > 0) {
+                        val contactId = cursor.getString(idIndex)
+                        contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            arrayOf(contactId),
+                            null
+                        )?.use { phoneCursor ->
+                            if (phoneCursor.moveToFirst()) {
+                                val numberIndex = phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                                if (numberIndex >= 0) {
+                                    phone = phoneCursor.getString(numberIndex).replace(" ", "")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            contactPickerLauncher.launch()
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("إضافة زبون جديد", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = {
+                        when (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS)) {
+                            PackageManager.PERMISSION_GRANTED -> {
+                                contactPickerLauncher.launch()
+                            }
+                            else -> {
+                                permissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("import_contacts_button")
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.ContactPage,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("استيراد من جهات الاتصال", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = {
