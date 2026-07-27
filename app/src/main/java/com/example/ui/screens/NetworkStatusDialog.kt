@@ -29,6 +29,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -229,29 +230,39 @@ fun NetworkStatusDialog(
                         } else {
                             LazyColumn(modifier = Modifier.height(160.dp)) {
                                 items(peers) { peer ->
-                                    Card(
+                                    ElevatedCard(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 4.dp),
-                                        shape = RoundedCornerShape(8.dp)
+                                            .padding(vertical = 6.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
                                     ) {
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(10.dp),
+                                                .padding(12.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .size(10.dp)
+                                                        .size(40.dp)
                                                         .clip(CircleShape)
-                                                        .background(MaterialTheme.colorScheme.tertiary)
-                                                )
-                                                Spacer(modifier = Modifier.width(8.dp))
+                                                        .background(MaterialTheme.colorScheme.tertiaryContainer),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.PhoneAndroid,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.width(12.dp))
                                                 Column {
-                                                    Text(peer.name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                                                    Text(peer.name, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
                                                     Text(
                                                         CurrencyFormatter.convertToArabicNumerals("${peer.ip}:${peer.port}"),
                                                         style = MaterialTheme.typography.bodySmall,
@@ -259,11 +270,19 @@ fun NetworkStatusDialog(
                                                     )
                                                 }
                                             }
-                                            Text(
-                                                "متصل محلياً",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.tertiary
-                                            )
+                                            
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f))
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    "متصل",
+                                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                                    color = MaterialTheme.colorScheme.tertiary
+                                                )
+                                            }
                                         }
                                     }
                                 }
