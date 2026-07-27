@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
@@ -67,7 +70,8 @@ fun MainLedgerScreen(
     onSearchQueryChange: (String) -> Unit,
     onCustomerClick: (String) -> Unit,
     onAddCustomerClick: () -> Unit,
-    onNetworkStatusClick: () -> Unit
+    onNetworkStatusClick: () -> Unit,
+    onBackupClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -75,17 +79,27 @@ fun MainLedgerScreen(
                 title = {
                     Column {
                         Text(
-                            text = "دفتر الديون المحلي",
+                            text = stringResource(R.string.main_screen_title),
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
-                            text = "مزامنة تلقائية بدون إنترنت (Wi-Fi)",
+                            text = stringResource(R.string.main_screen_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = onBackupClick,
+                        modifier = Modifier.testTag("backup_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SettingsBackupRestore,
+                            contentDescription = "النسخ الاحتياطي",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                     IconButton(
                         onClick = onNetworkStatusClick,
                         modifier = Modifier.testTag("network_status_button")
@@ -127,7 +141,7 @@ fun MainLedgerScreen(
                     Icon(Icons.Default.PersonAdd, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "زبون جديد",
+                        text = stringResource(R.string.add_customer_button),
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 }
@@ -157,7 +171,7 @@ fun MainLedgerScreen(
                 ) {
                     Column {
                         Text(
-                            text = "إجمالي ديون المحل (على الزبائن)",
+                            text = stringResource(R.string.total_debt_label),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -182,7 +196,7 @@ fun MainLedgerScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "زبون مسجل",
+                                text = stringResource(R.string.customer_count_label),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -194,12 +208,12 @@ fun MainLedgerScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
-                placeholder = { Text("بحث باسم الزبون أو رقم الهاتف...") },
+                placeholder = { Text(stringResource(R.string.search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { onSearchQueryChange("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "مسح")
+                            Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.clear_search))
                         }
                     }
                 },
@@ -230,13 +244,13 @@ fun MainLedgerScreen(
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = if (searchQuery.isBlank()) "لا يوجد زبائن مسجلين حالياً" else "لم يتم العثور على نتائج للبحث",
+                            text = if (searchQuery.isBlank()) stringResource(R.string.no_customers_found) else stringResource(R.string.no_search_results),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.outline
                         )
                         if (searchQuery.isBlank()) {
                             Text(
-                                text = "اضغط على زر (+) لإضافة أول زبون",
+                                text = stringResource(R.string.add_first_customer_prompt),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
                             )
@@ -368,38 +382,15 @@ fun CustomerListItem(
                 )
             }
 
-            // Balance Badge with modern styling
+            // Balance amount only
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.padding(start = 8.dp)
             ) {
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = badgeBg),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = if (isDebt) "مطلوب" else if (isSettled) "خالص" else "له رصيد",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = badgeTextColor
-                        )
-                        Text(
-                            text = CurrencyFormatter.formatAmount(kotlin.math.abs(balance)),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                            color = badgeTextColor
-                        )
-                    }
-                }
-                
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp).padding(top = 4.dp),
-                    tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                Text(
+                    text = CurrencyFormatter.formatAmount(kotlin.math.abs(balance)),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    color = if (balance > 0) MaterialTheme.colorScheme.error else if (balance < 0) Color(0xFF388E3C) else MaterialTheme.colorScheme.onSurface
                 )
             }
         }

@@ -1,8 +1,14 @@
 package com.example.ui.screens
 
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.net.Uri
+import android.os.Environment
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +35,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -48,6 +55,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,10 +65,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.example.data.entity.TransactionEntity
 import com.example.data.entity.TransactionType
 import com.example.data.model.CustomerWithBalance
 import com.example.ui.util.CurrencyFormatter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,6 +86,7 @@ fun CustomerDetailScreen(
     onEditTransactionClick: (TransactionEntity) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val customer = customerWithBalance.customer
     val balance = customerWithBalance.netBalance
 
@@ -86,6 +101,8 @@ fun CustomerDetailScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
+                },
+                actions = {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -143,21 +160,47 @@ fun CustomerDetailScreen(
                                 }
                             }
                         }
-
-                        if (customer.phone.isNotBlank()) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             IconButton(
                                 onClick = {
-                                    val intent = Intent(Intent.ACTION_DIAL).apply {
-                                        data = Uri.parse("tel:${customer.phone}")
+                                    scope.launch {
+                                        try {
+                                            val pdfFile = generatePdf(context, customer, transactions)
+                                            val uri = FileProvider.getUriForFile(
+                                                context,
+                                                "${context.packageName}.provider",
+                                                pdfFile
+                                            )
+                                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                                type = "application/pdf"
+                                                putExtra(Intent.EXTRA_STREAM, uri)
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            }
+                                            context.startActivity(Intent.createChooser(intent, "مشاركة كشف الحساب"))
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "فشل في إنشاء ملف PDF", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
-                                    context.startActivity(intent)
                                 }
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Call,
-                                    contentDescription = "اتصال",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                                Icon(Icons.Default.Share, contentDescription = "مشاركة")
+                            }
+
+                            if (customer.phone.isNotBlank()) {
+                                IconButton(
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                                            data = Uri.parse("tel:${customer.phone}")
+                                        }
+                                        context.startActivity(intent)
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Call,
+                                        contentDescription = "اتصال",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
@@ -296,6 +339,37 @@ fun CustomerDetailScreen(
     }
 }
 
+
+private suspend fun generatePdf(context: android.content.Context, customer: com.example.data.entity.CustomerEntity, transactions: List<TransactionEntity>): File {
+    return withContext(Dispatchers.IO) {
+        val document = PdfDocument()
+        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4
+        val page = document.startPage(pageInfo)
+        val canvas = page.canvas
+        val paint = Paint()
+        
+        var y = 50f
+        paint.textSize = 24f
+        canvas.drawText("كشف حساب: ${customer.name}", 50f, y, paint)
+        y += 40f
+        
+        paint.textSize = 16f
+        for (tx in transactions) {
+            val text = "${CurrencyFormatter.formatDate(tx.timestamp)} - ${if (tx.type == TransactionType.DEBT) "دين" else "تسديد"} - ${tx.amount}"
+            canvas.drawText(text, 50f, y, paint)
+            y += 30f
+        }
+        
+        document.finishPage(page)
+        
+        val file = File(context.cacheDir, "statement_${customer.name}.pdf")
+        document.writeTo(FileOutputStream(file))
+        document.close()
+        
+        file
+    }
+}
+
 @Composable
 fun OpeningBalanceRowItem(amount: Double, timestamp: Long) {
     val isDebt = amount > 0
@@ -385,7 +459,9 @@ fun TransactionRowItem(tx: TransactionEntity, onEditClick: () -> Unit) {
     val icon = if (isDebt) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEditClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
@@ -456,17 +532,6 @@ fun TransactionRowItem(tx: TransactionEntity, onEditClick: () -> Unit) {
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                     color = itemColor
                 )
-                IconButton(
-                    onClick = onEditClick,
-                    modifier = Modifier.size(36.dp).padding(top = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "تعديل",
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
         }
     }

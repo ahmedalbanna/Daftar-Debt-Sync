@@ -8,36 +8,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-val CairoFontFamily = FontFamily(
-    Font(R.font.cairo, FontWeight.Normal),
-    Font(R.font.cairo, FontWeight.Medium),
-    Font(R.font.cairo, FontWeight.SemiBold),
-    Font(R.font.cairo, FontWeight.Bold),
-    Font(R.font.cairo, FontWeight.Light),
-)
+val CairoFontFamily = FontFamily.Default
 
 // Set of Material typography styles to start with
 val Typography =
     Typography(
-        displayLarge = TextStyle(fontFamily = CairoFontFamily),
-        displayMedium = TextStyle(fontFamily = CairoFontFamily),
-        displaySmall = TextStyle(fontFamily = CairoFontFamily),
-        headlineLarge = TextStyle(fontFamily = CairoFontFamily),
-        headlineMedium = TextStyle(fontFamily = CairoFontFamily),
-        headlineSmall = TextStyle(fontFamily = CairoFontFamily),
-        titleLarge = TextStyle(fontFamily = CairoFontFamily),
-        titleMedium = TextStyle(fontFamily = CairoFontFamily),
-        titleSmall = TextStyle(fontFamily = CairoFontFamily),
+        displayLarge = TextStyle(fontFamily = CairoFontFamily, fontSize = 57.sp, lineHeight = 64.sp),
+        displayMedium = TextStyle(fontFamily = CairoFontFamily, fontSize = 45.sp, lineHeight = 52.sp),
+        displaySmall = TextStyle(fontFamily = CairoFontFamily, fontSize = 36.sp, lineHeight = 44.sp),
+        headlineLarge = TextStyle(fontFamily = CairoFontFamily, fontSize = 32.sp, lineHeight = 40.sp),
+        headlineMedium = TextStyle(fontFamily = CairoFontFamily, fontSize = 28.sp, lineHeight = 36.sp),
+        headlineSmall = TextStyle(fontFamily = CairoFontFamily, fontSize = 24.sp, lineHeight = 32.sp),
+        titleLarge = TextStyle(fontFamily = CairoFontFamily, fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold),
+        titleMedium = TextStyle(fontFamily = CairoFontFamily, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Medium),
+        titleSmall = TextStyle(fontFamily = CairoFontFamily, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
         bodyLarge = TextStyle(
             fontFamily = CairoFontFamily,
             fontWeight = FontWeight.Normal,
-            fontSize = 16.sp,
-            lineHeight = 24.sp,
+            fontSize = 18.sp,
+            lineHeight = 26.sp,
             letterSpacing = 0.5.sp,
         ),
-        bodyMedium = TextStyle(fontFamily = CairoFontFamily),
-        bodySmall = TextStyle(fontFamily = CairoFontFamily),
-        labelLarge = TextStyle(fontFamily = CairoFontFamily),
-        labelMedium = TextStyle(fontFamily = CairoFontFamily),
-        labelSmall = TextStyle(fontFamily = CairoFontFamily)
+        bodyMedium = TextStyle(fontFamily = CairoFontFamily, fontSize = 16.sp, lineHeight = 22.sp),
+        bodySmall = TextStyle(fontFamily = CairoFontFamily, fontSize = 14.sp, lineHeight = 20.sp),
+        labelLarge = TextStyle(fontFamily = CairoFontFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
+        labelMedium = TextStyle(fontFamily = CairoFontFamily, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium),
+        labelSmall = TextStyle(fontFamily = CairoFontFamily, fontSize = 11.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
     )

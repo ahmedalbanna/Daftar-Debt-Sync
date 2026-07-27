@@ -14,7 +14,7 @@ object CurrencyFormatter {
     fun convertToArabicNumerals(input: String): String =
         input.map { map[it] ?: it }.joinToString("")
 
-    fun formatAmount(amount: Double, currencySymbol: String = "د.ع"): String {
+    fun formatAmount(amount: Double, currencySymbol: String = "ر.ي"): String {
         val formatted = decimalFormat.format(amount)
         return "${convertToArabicNumerals(formatted)} $currencySymbol"
     }

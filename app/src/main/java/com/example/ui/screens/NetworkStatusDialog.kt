@@ -1,9 +1,5 @@
 package com.example.ui.screens
 
-import android.net.Uri
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -58,9 +52,6 @@ import com.example.ui.util.CurrencyFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 
 @Composable
 fun NetworkStatusDialog(
@@ -70,64 +61,10 @@ fun NetworkStatusDialog(
     logs: List<String>,
     isSyncing: Boolean,
     onTriggerSync: () -> Unit,
-    onExportBackup: suspend () -> String,
-    onImportBackup: suspend (String) -> Boolean,
     onDismiss: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri: Uri? ->
-        uri?.let {
-            scope.launch {
-                try {
-                    val json = onExportBackup()
-                    withContext(Dispatchers.IO) {
-                        context.contentResolver.openOutputStream(it)?.use { outputStream ->
-                            OutputStreamWriter(outputStream).use { writer ->
-                                writer.write(json)
-                            }
-                        }
-                    }
-                    Toast.makeText(context, "تم حفظ النسخة الاحتياطية بنجاح!", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(context, "فشل حفظ الملف: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        uri?.let {
-            scope.launch {
-                try {
-                    val json = withContext(Dispatchers.IO) {
-                        context.contentResolver.openInputStream(it)?.use { inputStream ->
-                            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                                reader.readText()
-                            }
-                        }
-                    } ?: ""
-                    
-                    if (json.isNotBlank()) {
-                        val success = onImportBackup(json)
-                        if (success) {
-                            Toast.makeText(context, "تم استيراد ودمج البيانات بنجاح!", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(context, "خطأ في تنسيق بيانات الملف", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(context, "فشل قراءة الملف: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -190,11 +127,6 @@ fun NetworkStatusDialog(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
                         text = { Text("سجل الأحداث") }
-                    )
-                    Tab(
-                        selected = selectedTab == 2,
-                        onClick = { selectedTab = 2 },
-                        text = { Text("النسخ الاحتياطي") }
                     )
                 }
 
@@ -299,44 +231,6 @@ fun NetworkStatusDialog(
                                     modifier = Modifier.padding(vertical = 2.dp)
                                 )
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                            }
-                        }
-                    }
-
-                    2 -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    val timestamp = System.currentTimeMillis()
-                                    exportLauncher.launch("Daftar_Backup_$timestamp.json")
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .testTag("export_backup_button")
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("تصدير نسخة احتياطية لملف")
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            OutlinedButton(
-                                onClick = {
-                                    importLauncher.launch(arrayOf("application/json"))
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .testTag("import_backup_button")
-                            ) {
-                                Icon(Icons.Default.Upload, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("استيراد نسخة احتياطية من ملف")
                             }
                         }
                     }

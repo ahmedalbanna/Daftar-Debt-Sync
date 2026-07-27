@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">دفتر الديون</string>
+    <string name="main_screen_title">دفتر الديون المحلي</string>
+    <string name="main_screen_subtitle">مزامنة تلقائية بدون إنترنت (Wi-Fi)</string>
+    <string name="add_customer_button">زبون جديد</string>
+    <string name="total_debt_label">إجمالي ديون المحل (على الزبائن)</string>
+    <string name="customer_count_label">زبون مسجل</string>
+    <string name="search_placeholder">بحث باسم الزبون أو رقم الهاتف...</string>
+    <string name="clear_search">مسح</string>
+    <string name="no_customers_found">لا يوجد زبائن مسجلين حالياً</string>
+    <string name="no_search_results">لم يتم العثور على نتائج للبحث</string>
+    <string name="add_first_customer_prompt">اضغط على زر (+) لإضافة أول زبون</string>
 </resources>

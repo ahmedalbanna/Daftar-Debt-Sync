@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -16,9 +17,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,18 +30,65 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.data.entity.TransactionType
 
+@Composable
+fun AddDebtDialog(
+    customerName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (amount: Double, note: String) -> Unit
+) {
+    TransactionDialog(
+        title = "تسجيل دين جديد ($customerName)",
+        type = TransactionType.DEBT,
+        onDismiss = onDismiss,
+        onConfirm = { _, amount, note -> onConfirm(amount, note) }
+    )
+}
+
+@Composable
+fun AddPaymentDialog(
+    customerName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (amount: Double, note: String) -> Unit
+) {
+    TransactionDialog(
+        title = "تسجيل دفعة تسديد ($customerName)",
+        type = TransactionType.PAYMENT,
+        onDismiss = onDismiss,
+        onConfirm = { _, amount, note -> onConfirm(amount, note) }
+    )
+}
+
+@Composable
+fun EditTransactionDialog(
+    type: TransactionType,
+    initialAmount: Double,
+    initialNote: String,
+    onDismiss: () -> Unit,
+    onConfirm: (type: TransactionType, amount: Double, note: String) -> Unit,
+    onDelete: () -> Unit
+) {
+    TransactionDialog(
+        title = "تعديل حركة",
+        type = type,
+        initialAmount = initialAmount.toString(),
+        initialNote = initialNote,
+        onDismiss = onDismiss,
+        onConfirm = onConfirm,
+        onDelete = onDelete
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AddTransactionDialog(
-    customerName: String,
-    initialType: TransactionType = TransactionType.DEBT,
+private fun TransactionDialog(
+    title: String,
+    type: TransactionType,
     initialAmount: String = "",
     initialNote: String = "",
-    title: String? = null,
     onDismiss: () -> Unit,
-    onConfirm: (type: TransactionType, amount: Double, note: String) -> Unit
+    onConfirm: (type: TransactionType, amount: Double, note: String) -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
-    var selectedType by remember { mutableStateOf(initialType) }
     var amountText by remember { mutableStateOf(initialAmount) }
     var note by remember { mutableStateOf(initialNote) }
     var amountError by remember { mutableStateOf(false) }
@@ -52,51 +97,16 @@ fun AddTransactionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                title ?: if (selectedType == TransactionType.DEBT) "تسجيل دين جديد ($customerName)" else "تسجيل دفعة تسديد ($customerName)",
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    SegmentedButton(
-                        selected = selectedType == TransactionType.DEBT,
-                        onClick = { selectedType = TransactionType.DEBT },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = MaterialTheme.colorScheme.errorContainer,
-                            activeContentColor = MaterialTheme.colorScheme.error
-                        ),
-                        modifier = Modifier.testTag("type_debt_button")
-                    ) {
-                        Text("دين (على الزبون)")
-                    }
-
-                    SegmentedButton(
-                        selected = selectedType == TransactionType.PAYMENT,
-                        onClick = { selectedType = TransactionType.PAYMENT },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            activeContentColor = MaterialTheme.colorScheme.tertiary
-                        ),
-                        modifier = Modifier.testTag("type_payment_button")
-                    ) {
-                        Text("تسديد (من الزبون)")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = {
                         amountText = it
                         if (it.isNotBlank() && it.toDoubleOrNull() != null) amountError = false
                     },
-                    label = { Text("المبلغ (د.ع) *", style = MaterialTheme.typography.bodyMedium) },
+                    label = { Text("المبلغ (ر.ي) *", style = MaterialTheme.typography.bodyMedium) },
                     isError = amountError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -148,34 +158,48 @@ fun AddTransactionDialog(
             }
         },
         confirmButton = {
-            val buttonColor = if (selectedType == TransactionType.DEBT) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
-            val onButtonColor = if (selectedType == TransactionType.DEBT) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onTertiary
-            Button(
-                onClick = {
-                    val amount = amountText.toDoubleOrNull()
-                    if (amount == null || amount <= 0) {
-                        amountError = true
-                    } else {
-                        onConfirm(selectedType, amount, note)
-                        onDismiss()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = buttonColor,
-                    contentColor = onButtonColor
-                ),
-                modifier = Modifier.testTag("save_transaction_button")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
-                Text(
-                    text = if (selectedType == TransactionType.DEBT) "حفظ الدين" else "حفظ التسديد",
-                    style = MaterialTheme.typography.labelLarge
-                )
+                if (onDelete != null) {
+                    TextButton(
+                        onClick = onDelete,
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("حذف", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("إلغاء", style = MaterialTheme.typography.labelLarge)
+                }
+                
+                val isDebt = type == TransactionType.DEBT
+                val buttonColor = if (isDebt) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+                val onButtonColor = if (isDebt) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onTertiary
+                Button(
+                    onClick = {
+                        val amount = amountText.toDoubleOrNull()
+                        if (amount == null || amount <= 0) {
+                            amountError = true
+                        } else {
+                            onConfirm(type, amount, note)
+                            onDismiss()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = buttonColor,
+                        contentColor = onButtonColor
+                    ),
+                    modifier = Modifier.testTag("save_transaction_button")
+                ) {
+                    Text(
+                        text = "حفظ",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("إلغاء")
-            }
-        }
+        dismissButton = {}
     )
 }

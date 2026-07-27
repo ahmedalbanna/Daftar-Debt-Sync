@@ -13,11 +13,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.entity.TransactionType
 import com.example.ui.screens.AddCustomerDialog
-import com.example.ui.screens.AddTransactionDialog
+import com.example.ui.screens.AddDebtDialog
+import com.example.ui.screens.AddPaymentDialog
+import com.example.ui.screens.EditTransactionDialog
 import com.example.ui.screens.CustomerDetailScreen
 import com.example.ui.screens.MainLedgerScreen
 import com.example.ui.screens.NetworkStatusDialog
-import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.DaftarTheme
 import com.example.ui.viewmodel.LedgerViewModel
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +31,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            MyApplicationTheme {
+            DaftarTheme {
                 DaftarApp(viewModel = viewModel)
             }
         }
@@ -49,8 +51,10 @@ fun DaftarApp(viewModel: LedgerViewModel) {
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
 
     var showAddCustomerDialog by remember { mutableStateOf(false) }
-    var showAddTransactionDialog by remember { mutableStateOf(false) }
-    var transactionTypeToAdd by remember { mutableStateOf(TransactionType.DEBT) }
+    var showAddDebtDialog by remember { mutableStateOf(false) }
+    var showAddPaymentDialog by remember { mutableStateOf(false) }
+    var showEditTransactionDialog by remember { mutableStateOf(false) }
+    var showBackupDialog by remember { mutableStateOf(false) }
     var transactionToEdit by remember { mutableStateOf<com.example.data.entity.TransactionEntity?>(null) }
     var showNetworkStatusDialog by remember { mutableStateOf(false) }
 
@@ -62,14 +66,15 @@ fun DaftarApp(viewModel: LedgerViewModel) {
             transactions = selectedCustomerTransactions,
             onBackClick = { viewModel.selectCustomer(null) },
             onAddTransactionClick = { type ->
-                transactionTypeToAdd = type
-                transactionToEdit = null
-                showAddTransactionDialog = true
+                if (type == TransactionType.DEBT) {
+                    showAddDebtDialog = true
+                } else {
+                    showAddPaymentDialog = true
+                }
             },
             onEditTransactionClick = { tx ->
                 transactionToEdit = tx
-                transactionTypeToAdd = tx.type
-                showAddTransactionDialog = true
+                showEditTransactionDialog = true
             }
         )
     } else {
@@ -81,7 +86,8 @@ fun DaftarApp(viewModel: LedgerViewModel) {
             onSearchQueryChange = { viewModel.setSearchQuery(it) },
             onCustomerClick = { customerId -> viewModel.selectCustomer(customerId) },
             onAddCustomerClick = { showAddCustomerDialog = true },
-            onNetworkStatusClick = { showNetworkStatusDialog = true }
+            onNetworkStatusClick = { showNetworkStatusDialog = true },
+            onBackupClick = { showBackupDialog = true }
         )
     }
 
@@ -94,25 +100,49 @@ fun DaftarApp(viewModel: LedgerViewModel) {
         )
     }
 
-    if (showAddTransactionDialog && currentCustomer != null) {
-        AddTransactionDialog(
+    if (showAddDebtDialog && currentCustomer != null) {
+        AddDebtDialog(
             customerName = currentCustomer.customer.name,
-            initialType = transactionTypeToAdd,
-            initialAmount = transactionToEdit?.amount?.let { if (it % 1.0 == 0.0) it.toLong().toString() else it.toString() } ?: "",
-            initialNote = transactionToEdit?.note ?: "",
-            title = if (transactionToEdit != null) "تعديل الحركة المالية" else null,
+            onDismiss = { showAddDebtDialog = false },
+            onConfirm = { amount, note ->
+                viewModel.addTransaction(currentCustomer.customer.id, TransactionType.DEBT, amount, note)
+            }
+        )
+    }
+
+    if (showAddPaymentDialog && currentCustomer != null) {
+        AddPaymentDialog(
+            customerName = currentCustomer.customer.name,
+            onDismiss = { showAddPaymentDialog = false },
+            onConfirm = { amount, note ->
+                viewModel.addTransaction(currentCustomer.customer.id, TransactionType.PAYMENT, amount, note)
+            }
+        )
+    }
+
+    if (showEditTransactionDialog && transactionToEdit != null) {
+        EditTransactionDialog(
+            type = transactionToEdit!!.type,
+            initialAmount = transactionToEdit!!.amount,
+            initialNote = transactionToEdit!!.note,
             onDismiss = { 
-                showAddTransactionDialog = false
+                showEditTransactionDialog = false
                 transactionToEdit = null
             },
             onConfirm = { type, amount, note ->
                 val toEdit = transactionToEdit
                 if (toEdit != null) {
                     viewModel.updateTransaction(toEdit, amount, note)
-                } else {
-                    viewModel.addTransaction(currentCustomer.customer.id, type, amount, note)
                 }
                 transactionToEdit = null
+            },
+            onDelete = {
+                val toDelete = transactionToEdit
+                if (toDelete != null) {
+                    viewModel.deleteTransaction(toDelete)
+                }
+                transactionToEdit = null
+                showEditTransactionDialog = false
             }
         )
     }
@@ -125,9 +155,15 @@ fun DaftarApp(viewModel: LedgerViewModel) {
             logs = syncLogs,
             isSyncing = isSyncing,
             onTriggerSync = { viewModel.triggerManualSync() },
+            onDismiss = { showNetworkStatusDialog = false }
+        )
+    }
+
+    if (showBackupDialog) {
+        com.example.ui.screens.BackupDialog(
             onExportBackup = { viewModel.exportBackupJson() },
             onImportBackup = { json -> viewModel.importBackupJson(json) },
-            onDismiss = { showNetworkStatusDialog = false }
+            onDismiss = { showBackupDialog = false }
         )
     }
 }

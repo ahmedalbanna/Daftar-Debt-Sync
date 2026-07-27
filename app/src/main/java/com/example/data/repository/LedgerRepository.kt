@@ -118,6 +118,16 @@ class LedgerRepository(
         return updatedTransaction
     }
 
+    suspend fun deleteTransaction(transaction: TransactionEntity) {
+        transactionDao.deleteTransactionById(transaction.id)
+        
+        // Touch customer updatedAt
+        val customer = customerDao.getCustomerByIdDirect(transaction.customerId)
+        if (customer != null) {
+            customerDao.updateCustomer(customer.copy(updatedAt = System.currentTimeMillis()))
+        }
+    }
+
     suspend fun getUnsyncedTransactions(): List<TransactionEntity> {
         return transactionDao.getUnsyncedTransactions()
     }

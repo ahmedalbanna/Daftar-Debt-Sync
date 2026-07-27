@@ -152,6 +152,14 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun deleteTransaction(transaction: TransactionEntity) {
+        viewModelScope.launch {
+            repository.deleteTransaction(transaction)
+            // Note: Currently no explicit sync for deletion to all peers
+            // This would be a potential enhancement
+        }
+    }
+
     fun triggerManualSync() {
         syncOrchestrator.triggerSyncWithAllPeers()
     }
