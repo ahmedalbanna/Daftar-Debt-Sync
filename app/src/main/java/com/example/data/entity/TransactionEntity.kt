@@ -21,5 +21,6 @@ data class TransactionEntity(
     override val timestamp: Long = System.currentTimeMillis(),
     override val deviceId: String,
     val isSynced: Boolean = false,
+    val isOpeningBalance: Boolean = false,
     override val entityType: String = "TRANSACTION"
 ) : SyncableEvent

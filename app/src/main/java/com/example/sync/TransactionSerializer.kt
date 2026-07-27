@@ -17,6 +17,7 @@ class TransactionSerializer : SyncSerializer<TransactionEntity> {
             put("note", event.note)
             put("timestamp", event.timestamp)
             put("deviceId", event.deviceId)
+            put("isOpeningBalance", event.isOpeningBalance)
         }
     }
 
@@ -29,7 +30,8 @@ class TransactionSerializer : SyncSerializer<TransactionEntity> {
             note = json.optString("note", ""),
             timestamp = json.optLong("timestamp", System.currentTimeMillis()),
             deviceId = json.optString("deviceId", "Unknown"),
-            isSynced = true
+            isSynced = true,
+            isOpeningBalance = json.optBoolean("isOpeningBalance", false)
         )
     }
 

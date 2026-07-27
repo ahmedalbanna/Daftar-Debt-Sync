@@ -1,12 +1,17 @@
 package com.example.ui.viewmodel
 
 import android.app.Application
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.database.AppDatabase
 import com.example.data.entity.CustomerEntity
 import com.example.data.entity.TransactionEntity
 import com.example.data.entity.TransactionType
+import com.example.data.imports.ContactInfo
+import com.example.data.imports.ImportParser
+import com.example.data.imports.ImportResult
 import com.example.data.model.CustomerWithBalance
 import com.example.data.repository.LedgerRepository
 import com.example.localsync.model.PeerDevice
@@ -135,6 +140,23 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun addCustomerWithOpeningBalance(
+        name: String,
+        phone: String,
+        notes: String,
+        openingBalance: Double
+    ) {
+        viewModelScope.launch {
+            val customer = repository.addCustomer(name, phone, notes)
+            val tx = repository.addOpeningBalanceTransaction(customer.id, openingBalance)
+            val cust = db.customerDao().getCustomerByIdDirect(customer.id)
+            if (cust != null) {
+                syncOrchestrator.pushNewTransactionToAllPeers(cust, tx)
+            }
+            selectCustomer(customer.id)
+        }
+    }
+
     fun addTransaction(customerId: String, type: TransactionType, amount: Double, note: String) {
         viewModelScope.launch {
             val tx = repository.addTransaction(customerId, type, amount, note)
@@ -147,6 +169,55 @@ class LedgerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun triggerManualSync() {
         syncOrchestrator.triggerSyncWithAllPeers()
+    }
+
+    /**
+     * Parse and import customers from a CSV or XLSX file.
+     * Returns the import result with parsed rows and any errors.
+     */
+    suspend fun importFromFile(context: Context, uri: Uri): ImportResult {
+        val fileExtension = uri.lastPathSegment?.substringAfterLast('.', "")?.lowercase() ?: ""
+        val result = when (fileExtension) {
+            "xlsx", "xls" -> ImportParser.parseXlsx(context, uri)
+            else -> ImportParser.parseCsv(context, uri) // default to CSV
+        }
+
+        if (result.rows.isNotEmpty()) {
+            val imported = repository.importCustomersFromFile(result.rows)
+            if (imported > 0) {
+                syncOrchestrator.triggerSyncWithAllPeers()
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * Import selected contacts as new customers (without opening balance).
+     * Returns the number of successfully imported customers.
+     */
+    suspend fun importContacts(contacts: List<ContactInfo>): Int {
+        var imported = 0
+        val existingCustomers = repository.getAllCustomersDirect()
+        val existingPhones = existingCustomers.mapNotNull { it.phone.takeIf { p -> p.isNotBlank() } }.toSet()
+
+        for (contact in contacts) {
+            // Skip if phone already registered
+            if (contact.phone in existingPhones) continue
+
+            repository.addCustomer(
+                name = contact.name,
+                phone = contact.phone,
+                notes = "مستورد من جهات الاتصال"
+            )
+            imported++
+        }
+
+        if (imported > 0) {
+            syncOrchestrator.triggerSyncWithAllPeers()
+        }
+
+        return imported
     }
 
     suspend fun exportBackupJson(): String {

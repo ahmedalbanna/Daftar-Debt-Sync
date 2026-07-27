@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,12 +28,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AddCustomerDialog(
     onDismiss: () -> Unit,
-    onConfirm: (name: String, phone: String, notes: String) -> Unit
+    onConfirm: (name: String, phone: String, notes: String, openingBalance: Double) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    var openingBalanceText by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf(false) }
+    var showOpeningBalance by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -86,6 +91,67 @@ fun AddCustomerDialog(
                         .fillMaxWidth()
                         .testTag("customer_notes_input")
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (!showOpeningBalance) {
+                    TextButton(
+                        onClick = { showOpeningBalance = true },
+                        modifier = Modifier.testTag("toggle_opening_balance_button")
+                    ) {
+                        Text(
+                            "+ إضافة رصيد سابق (افتتاحي)",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "الرصيد الافتتاحي (دين سابق)",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "سجل هنا المبلغ الإجمالي للدين السابق المنقول من الدفتر الورقي. سيتم تسجيله كأول حركة للزبون.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                            )
+                            OutlinedTextField(
+                                value = openingBalanceText,
+                                onValueChange = { openingBalanceText = it },
+                                label = { Text("مبلغ الدين السابق (د.ع)", style = MaterialTheme.typography.bodyMedium) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                textStyle = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("opening_balance_input")
+                            )
+                            TextButton(
+                                onClick = {
+                                    showOpeningBalance = false
+                                    openingBalanceText = ""
+                                },
+                                modifier = Modifier.testTag("remove_opening_balance_button")
+                            ) {
+                                Text(
+                                    "إزالة الرصيد الافتتاحي",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
@@ -94,7 +160,9 @@ fun AddCustomerDialog(
                     if (name.isBlank()) {
                         nameError = true
                     } else {
-                        onConfirm(name, phone, notes)
+                        val openingBalance = openingBalanceText.toDoubleOrNull()
+                            ?: 0.0
+                        onConfirm(name, phone, notes, openingBalance)
                         onDismiss()
                     }
                 },

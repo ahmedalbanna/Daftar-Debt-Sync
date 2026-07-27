@@ -21,12 +21,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
@@ -64,6 +66,8 @@ fun MainLedgerScreen(
     onSearchQueryChange: (String) -> Unit,
     onCustomerClick: (String) -> Unit,
     onAddCustomerClick: () -> Unit,
+    onImportBalancesClick: () -> Unit,
+    onImportContactsClick: () -> Unit,
     onNetworkStatusClick: () -> Unit
 ) {
     Scaffold(
@@ -83,6 +87,26 @@ fun MainLedgerScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = onImportBalancesClick,
+                        modifier = Modifier.testTag("import_balances_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FileUpload,
+                            contentDescription = "استيراد من ملف",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    IconButton(
+                        onClick = onImportContactsClick,
+                        modifier = Modifier.testTag("import_contacts_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Contacts,
+                            contentDescription = "استيراد من جهات الاتصال",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                     IconButton(
                         onClick = onNetworkStatusClick,
                         modifier = Modifier.testTag("network_status_button")

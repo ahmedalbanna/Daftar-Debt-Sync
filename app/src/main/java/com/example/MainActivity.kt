@@ -15,6 +15,8 @@ import com.example.data.entity.TransactionType
 import com.example.ui.screens.AddCustomerDialog
 import com.example.ui.screens.AddTransactionDialog
 import com.example.ui.screens.CustomerDetailScreen
+import com.example.ui.screens.ImportBalancesDialog
+import com.example.ui.screens.ImportFromContactsDialog
 import com.example.ui.screens.MainLedgerScreen
 import com.example.ui.screens.NetworkStatusDialog
 import com.example.ui.theme.MyApplicationTheme
@@ -52,6 +54,8 @@ fun DaftarApp(viewModel: LedgerViewModel) {
     var showAddTransactionDialog by remember { mutableStateOf(false) }
     var transactionTypeToAdd by remember { mutableStateOf(TransactionType.DEBT) }
     var showNetworkStatusDialog by remember { mutableStateOf(false) }
+    var showImportBalancesDialog by remember { mutableStateOf(false) }
+    var showImportContactsDialog by remember { mutableStateOf(false) }
 
     val currentCustomer = selectedCustomerDetail
 
@@ -74,6 +78,8 @@ fun DaftarApp(viewModel: LedgerViewModel) {
             onSearchQueryChange = { viewModel.setSearchQuery(it) },
             onCustomerClick = { customerId -> viewModel.selectCustomer(customerId) },
             onAddCustomerClick = { showAddCustomerDialog = true },
+            onImportBalancesClick = { showImportBalancesDialog = true },
+            onImportContactsClick = { showImportContactsDialog = true },
             onNetworkStatusClick = { showNetworkStatusDialog = true }
         )
     }
@@ -81,20 +87,41 @@ fun DaftarApp(viewModel: LedgerViewModel) {
     if (showAddCustomerDialog) {
         AddCustomerDialog(
             onDismiss = { showAddCustomerDialog = false },
-            onConfirm = { name, phone, notes ->
-                viewModel.addCustomer(name, phone, notes)
+            onConfirm = { name, phone, notes, openingBalance ->
+                if (openingBalance > 0) {
+                    viewModel.addCustomerWithOpeningBalance(name, phone, notes, openingBalance)
+                } else {
+                    viewModel.addCustomer(name, phone, notes)
+                }
             }
         )
     }
 
     if (showAddTransactionDialog && currentCustomer != null) {
+        val existingNames = customers.map { it.customer.name }
         AddTransactionDialog(
             customerName = currentCustomer.customer.name,
             initialType = transactionTypeToAdd,
+            existingCustomerNames = existingNames,
             onDismiss = { showAddTransactionDialog = false },
             onConfirm = { type, amount, note ->
                 viewModel.addTransaction(currentCustomer.customer.id, type, amount, note)
             }
+        )
+    }
+
+    if (showImportBalancesDialog) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        ImportBalancesDialog(
+            onImport = { uri -> viewModel.importFromFile(context, uri) },
+            onDismiss = { showImportBalancesDialog = false }
+        )
+    }
+
+    if (showImportContactsDialog) {
+        ImportFromContactsDialog(
+            onImport = { contacts -> viewModel.importContacts(contacts) },
+            onDismiss = { showImportContactsDialog = false }
         )
     }
 

@@ -5,6 +5,7 @@ import com.example.data.dao.TransactionDao
 import com.example.data.entity.CustomerEntity
 import com.example.data.entity.TransactionEntity
 import com.example.data.entity.TransactionType
+import com.example.data.imports.ImportRow
 import com.example.data.model.CustomerWithBalance
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -66,6 +67,61 @@ class LedgerRepository(
         )
         customerDao.insertCustomer(newCustomer)
         return newCustomer
+    }
+
+    suspend fun addOpeningBalanceTransaction(
+        customerId: String,
+        amount: Double
+    ): TransactionEntity {
+        val transaction = TransactionEntity(
+            id = UUID.randomUUID().toString(),
+            customerId = customerId,
+            type = TransactionType.DEBT,
+            amount = amount,
+            note = "رصيد افتتاحي منقول",
+            timestamp = System.currentTimeMillis(),
+            deviceId = deviceId,
+            isSynced = false,
+            isOpeningBalance = true
+        )
+        transactionDao.insertTransaction(transaction)
+
+        val customer = customerDao.getCustomerByIdDirect(customerId)
+        if (customer != null) {
+            customerDao.updateCustomer(customer.copy(updatedAt = System.currentTimeMillis()))
+        }
+
+        return transaction
+    }
+
+    /**
+     * Import customers and their opening balances from a list of [ImportRow] items.
+     * Returns the number of successfully imported customers.
+     */
+    suspend fun importCustomersFromFile(rows: List<ImportRow>): Int {
+        var imported = 0
+        for (row in rows) {
+            // Check if customer with same phone already exists
+            val existingCustomers = customerDao.getAllCustomersDirect()
+            val duplicate = existingCustomers.any { c ->
+                c.phone.isNotBlank() && c.phone == row.phone
+            }
+            if (duplicate) continue
+
+            val customer = CustomerEntity(
+                id = UUID.randomUUID().toString(),
+                name = row.name.trim(),
+                phone = row.phone.trim(),
+                notes = "مستورد من ملف خارجي",
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+            customerDao.insertCustomer(customer)
+
+            addOpeningBalanceTransaction(customer.id, row.balance)
+            imported++
+        }
+        return imported
     }
 
     suspend fun addTransaction(
